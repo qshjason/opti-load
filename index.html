@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opti-Load · 集装箱装柜优化</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<!-- Web fonts load without blocking the page (Google Fonts can be slow or blocked); system fonts are used until then -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" media="print" onload="this.media='all'">
+<link rel="icon" href="logo.svg" type="image/svg+xml">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <svg class="logo-mark" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><rect x="4" y="12" width="56" height="40" rx="4" fill="none" stroke="currentColor" stroke-width="4"/><rect x="10" y="32" width="14" height="14" rx="1.5" fill="#0099CC"/><rect x="26" y="32" width="14" height="14" rx="1.5" fill="#0099CC"/><rect x="42" y="32" width="12" height="14" rx="1.5" fill="#0099CC"/><rect x="10" y="18" width="14" height="12" rx="1.5" fill="#0099CC"/><rect x="26" y="18" width="14" height="12" rx="1.5" fill="#F2A33A"/><rect x="42" y="18" width="12" height="12" rx="1.5" fill="#7FD3EE"/></svg>
+    <span class="brand-name" data-t="appName">Opti-Load</span>
+    <span class="brand-sub" data-t="appSub">集装箱装柜优化</span>
+  </div>
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" id="tab-plan" data-tab="plan" data-t="tabPlan">装柜计算</button>
+    <button role="tab" id="tab-cargo" data-tab="cargo" data-t="tabCargo">货物</button>
+    <button role="tab" id="tab-containers" data-tab="containers" data-t="tabCon">集装箱</button>
+    <button role="tab" id="tab-data" data-tab="data" data-t="tabData">数据</button>
+  </nav>
+  <div class="prefs">
+    <label class="mini" for="pref-unit"><span data-t="unit">单位</span>
+      <select id="pref-unit"><option value="mm">mm</option><option value="cm">cm</option></select>
+    </label>
+    <button class="ghost" id="pref-lang" type="button">EN</button>
+  </div>
+</header>
+
+<main>
+  <!-- PLAN -->
+  <section class="view" id="view-plan">
+    <div class="plan-grid">
+      <aside class="panel job">
+        <div class="head-tip mode-head"><h2 data-t="loadMode">装柜方式</h2><span id="mode-info"></span></div>
+        <div class="seg mode-wrap" id="mode-seg" role="radiogroup">
+          <button type="button" data-mode="single" data-t="modeFull">单货整柜</button>
+          <button type="button" data-mode="multi" data-t="modeMix">拼柜</button>
+        </div>
+        <p id="mode-hint" hidden></p>
+
+        <div class="block-head">
+          <div class="head-tip"><h3 data-t="cargoLib">① 选择货物</h3><span id="pick-info"></span></div>
+          <button class="link" type="button" id="pick-new" data-t="newCargoShort">+ 新货物</button>
+        </div>
+        <input type="search" id="pick-q" class="search pick-q" data-tp="pickSearch" placeholder="搜索货物" aria-label="search cargo">
+        <div class="cargo-pick" id="cargo-pick"></div>
+        <p class="hint small" id="pick-hint"></p>
+
+        <div class="block-head">
+          <div class="head-tip"><h3 data-t="cargoToLoad">② 装柜货物</h3><span id="lines-info"></span></div>
+          <button class="link" type="button" id="lines-clear" data-t="clearAll">清空</button>
+        </div>
+        <div id="lines"></div>
+
+        <button type="button" class="con-toggle" id="con-toggle" aria-expanded="false" aria-controls="con-pick">
+          <span class="head-tip"><h3 data-t="candidates">③ 备选集装箱</h3><span id="con-info"></span></span>
+          <span class="con-chosen" id="con-count"></span>
+          <span class="caret" aria-hidden="true">▾</span>
+        </button>
+        <div class="con-mode-box" id="con-mode-box"></div>
+        <div class="con-pick" id="con-pick" hidden></div>
+
+        <button class="primary wide" type="button" id="run" data-t="calculate">计算装柜方案</button>
+        <p class="status" id="run-status" role="status"></p>
+      </aside>
+
+      <section class="results" id="results">
+        <div class="tiles" id="tiles"></div>
+        <div class="info-bar" id="plan-alt" hidden></div>
+        <div class="warn-bar" id="unplaced" hidden></div>
+        <div class="con-strip" id="con-strip"></div>
+
+        <div class="panel viewer-panel">
+          <div class="viewer-head">
+            <div>
+              <h2 id="v-title">—</h2>
+              <p class="hint" id="v-sub"></p>
+            </div>
+            <div class="view-btns" role="group">
+              <button type="button" class="chip" data-view="iso" data-t="viewIso">立体</button>
+              <button type="button" class="chip" data-view="door" data-t="viewDoor">柜门</button>
+              <button type="button" class="chip" data-view="side" data-t="viewSide">侧面</button>
+              <button type="button" class="chip" data-view="top" data-t="viewTop">俯视</button>
+            </div>
+          </div>
+          <div class="viewer" id="viewer"><p class="viewer-msg" id="viewer-msg"></p></div>
+          <div class="stepper">
+            <button type="button" class="chip" id="play" aria-label="play">▶</button>
+            <input type="range" id="step" min="0" max="0" value="0" aria-label="step">
+            <span class="step-num" id="step-num">0 / 0</span>
+          </div>
+          <div class="legend" id="legend"></div>
+        </div>
+
+      </section>
+
+      <aside class="detail-grid" id="side" data-side="verdict">
+        <div class="side-tabs seg" role="tablist">
+          <button type="button" role="tab" data-side="verdict" data-t="vTitle">装柜结论</button>
+          <button type="button" role="tab" data-side="list" data-t="loadList">装柜清单</button>
+          <button type="button" role="tab" data-side="steps" data-t="steps">装柜步骤</button>
+        </div>
+        <div class="panel verdict-panel">
+          <h3 data-t="vTitle">装柜结论</h3>
+          <div id="verdict"></div>
+        </div>
+        <div class="panel list-panel">
+          <div class="block-head">
+            <h3 data-t="loadList">装柜清单</h3>
+            <div class="actions" id="report-actions">
+              <button type="button" class="chip" id="copy-report" data-t="copyReport">复制报告</button>
+              <button type="button" class="chip needs-dl" id="pdf-export2" data-t="pdfExport">导出 PDF</button>
+              <button type="button" class="chip server-only" id="print-report" data-t="print">打印</button>
+              <button type="button" class="chip needs-dl" id="save-png" data-t="savePng">导出图片</button>
+            </div>
+          </div>
+          <div class="table-wrap"><table class="grid" id="load-table"></table></div>
+          <dl class="facts" id="facts"></dl>
+        </div>
+        <div class="panel steps-panel">
+          <h3 data-t="steps">装柜步骤</h3>
+          <div class="actions steps-actions"><button type="button" class="chip needs-dl" id="pdf-export" data-t="pdfExport">导出 PDF</button></div>
+          <p class="hint small" id="steps-intro"></p>
+          <ol class="steps" id="steps"></ol>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- CARGO -->
+  <section class="view" id="view-cargo" hidden>
+    <div class="panel">
+      <div class="block-head">
+        <h2 data-t="tabCargo">货物</h2>
+        <div class="actions">
+          <input type="search" id="cargo-q" class="search" data-tp="search" placeholder="搜索">
+          <button type="button" class="chip needs-dl" id="cargo-tpl" data-t="xlsTemplate">下载模板</button>
+          <button type="button" class="chip" id="cargo-upload" data-t="xlsUpload">上传表格</button>
+          <input type="file" id="cargo-file" accept=".xlsx,.xls,.csv" hidden>
+          <button type="button" class="chip" id="cargo-new-set" data-t="newSet">新增套装</button>
+          <button type="button" class="primary" id="cargo-new" data-t="newCargo">新增货物</button>
+        </div>
+      </div>
+      <div class="bulk-bar" id="cargo-bulk" hidden>
+        <span id="cargo-bulk-n"></span>
+        <button type="button" class="chip" id="cargo-bulk-edit" data-t="bulkEdit">批量编辑</button>
+        <button type="button" class="chip" id="cargo-bulk-set" data-t="bulkSet">组成套装</button>
+        <button type="button" class="chip danger" id="cargo-bulk-del" data-t="bulkDelete">批量删除</button>
+        <button type="button" class="link" id="cargo-bulk-clear" data-t="clearSel">取消选择</button>
+      </div>
+      <div class="table-wrap"><table class="grid" id="cargo-table"></table></div>
+    </div>
+
+    <!-- SETS: groups of the cargo above (the cargo itself is unchanged) -->
+    <div class="panel sets-panel" id="sets-panel">
+      <div class="block-head">
+        <h2 data-t="tabSets">套装</h2>
+      </div>
+      <p class="hint" data-t="setsHint">套装由多种货物按固定数量组成（例如一套家具），可在“单货整柜”中计算一个柜最多装几套。</p>
+      <div class="table-wrap"><table class="grid" id="set-table"></table></div>
+    </div>
+  </section>
+
+  <!-- CONTAINERS -->
+  <section class="view" id="view-containers" hidden>
+    <div class="panel">
+      <div class="block-head">
+        <h2 data-t="tabCon">集装箱</h2>
+        <button type="button" class="primary" id="con-new" data-t="newCon">新增集装箱</button>
+      </div>
+      <div class="table-wrap"><table class="grid" id="con-table"></table></div>
+    </div>
+  </section>
+
+
+  <!-- DATA -->
+  <section class="view" id="view-data" hidden>
+    <div class="data-grid">
+      <div class="panel auth-panel" id="team-panel" hidden></div>
+      <div class="panel auth-panel" id="account-panel" hidden></div>
+      <div class="panel">
+        <h2 data-t="storage">数据存储</h2>
+        <p id="storage-note"></p>
+        <div class="actions">
+          <button type="button" class="chip" id="backup-copy" data-t="copyBackup">复制备份 (JSON)</button>
+          <button type="button" class="chip needs-dl" id="backup-dl" data-t="downloadBackup">下载备份</button>
+          <button type="button" class="chip danger" id="reset-data" data-t="resetData">恢复示例数据</button>
+        </div>
+      </div>
+      <div class="panel">
+        <h2 data-t="restore">恢复备份</h2>
+        <label for="restore-text" class="hint" data-t="restoreHint">粘贴备份 JSON，或选择备份文件。会替换当前全部数据。</label>
+        <textarea id="restore-text" rows="6" spellcheck="false"></textarea>
+        <div class="actions">
+          <input type="file" id="restore-file" accept=".json,application/json">
+          <button type="button" class="primary" id="restore-go" data-t="restoreGo">恢复</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<dialog id="dlg">
+  <form method="dialog" id="dlg-form">
+    <h2 id="dlg-title"></h2>
+    <div id="dlg-body"></div>
+    <p class="status bad" id="dlg-err"></p>
+    <div class="dlg-actions">
+      <button type="button" class="ghost" id="dlg-cancel" data-t="cancel">取消</button>
+      <button type="submit" class="primary" id="dlg-ok" data-t="save">保存</button>
+    </div>
+  </form>
+</dialog>
+
+<div id="print-area" aria-hidden="true"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* If anything fails while the page starts, show the error on the page
+   instead of leaving it blank, with a way to start a fresh loading task. */
+(function () {
+  var shown = 0;
+  function show(msg) {
+    if (shown++ > 4) return;
+    var box = document.getElementById('fatal');
+    if (!box) {
+      box = document.createElement('div'); box.id = 'fatal';
+      box.setAttribute('role', 'alert');
+      box.style.cssText = 'position:fixed;left:12px;right:12px;bottom:12px;z-index:9999;background:#fff4f2;color:#7a1d10;border:1px solid #e0a093;border-radius:8px;padding:10px 12px;font:13px/1.5 system-ui,sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.15);max-height:40vh;overflow:auto';
+      var zh = (navigator.language || '').indexOf('zh') === 0 || document.documentElement.lang.indexOf('zh') === 0;
+      box.innerHTML = '<b>' + (zh ? '页面出错了，请把这段文字截图发给我：' : 'Something went wrong. Please send a screenshot of this text:') + '</b><pre id="fatal-msg" style="white-space:pre-wrap;margin:6px 0;font:12px/1.4 ui-monospace,monospace"></pre>' +
+        '<button type="button" id="fatal-reset" style="padding:4px 10px;border:1px solid #c66;border-radius:6px;background:#fff;cursor:pointer">' + (zh ? '重置装柜任务并重新打开（货物、集装箱、套装不受影响）' : 'Reset the loading task and reload (cargo, containers and sets are kept)') + '</button>';
+      (document.body || document.documentElement).appendChild(box);
+      document.getElementById('fatal-reset').onclick = function () {
+        try {
+          for (var i = 0; i < localStorage.length; i++) {
+            var k = localStorage.key(i);
+            if (!/^opti-load-v1(-local.*)?$/.test(k)) continue;
+            var d = JSON.parse(localStorage.getItem(k) || 'null');
+            if (d && typeof d === 'object') { delete d.job; localStorage.setItem(k, JSON.stringify(d)); }
+          }
+        } catch (e) { /* storage blocked */ }
+        location.reload();
+      };
+    }
+    document.getElementById('fatal-msg').textContent += (msg || '') + '\n';
+  }
+  window.__showFatal = show;
+  window.addEventListener('error', function (e) {
+    var t = e.target;
+    if (t && t !== window && (t.src || t.href)) {
+      // Fonts and files that have a fallback are not errors worth showing.
+      if (t.tagName === 'LINK' || t.hasAttribute('data-soft')) return;
+      show('Load failed: ' + (t.src || t.href)); return;
+    }
+    // Browser notices that are not errors (ResizeObserver loop) are ignored.
+    if (/ResizeObserver loop/i.test(e.message || '')) return;
+    show((e.message || 'Error') + (e.filename ? ' @ ' + e.filename.split('/').pop() + ':' + e.lineno + ':' + e.colno : '') + (e.error && e.error.stack ? '\n' + e.error.stack.split('\n').slice(0, 4).join('\n') : ''));
+  }, true);
+  window.addEventListener('unhandledrejection', function (e) {
+    var r = e.reason; show('Unhandled: ' + (r && (r.stack || r.message) || r));
+  });
+})();
+</script>
+<!-- 3D library: local copy first (cdn.jsdelivr.net is often blocked in mainland China), CDN as fallback -->
+<script src="vendor/three.min.js" data-soft></script>
+<script>window.THREE || document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"><\/script>')</script>
+<script src="vendor/OrbitControls.js" data-soft></script>
+<script>(window.THREE && THREE.OrbitControls) || document.write('<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"><\/script>')</script>
+<script src="seed.js"></script>
+<script src="packer.js"></script>
+<script src="i18n.js"></script>
+<script src="viewer.js"></script>
+<script src="account.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
