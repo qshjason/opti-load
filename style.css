@@ -59,6 +59,18 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .site-foot > * { margin-right: 6px; }
 .site-foot .foot-ver { font-variant-numeric: tabular-nums; font-weight: 600; }
 .site-foot a { color: inherit; }
+.site-foot .foot-fb {
+  font: inherit; font-weight: 600; color: var(--accent); background: none; cursor: pointer;
+  border: 1px solid var(--accent); border-radius: 999px; padding: 1px 10px; margin-left: 4px;
+}
+.site-foot .foot-fb:hover { background: var(--accent); color: #fff; }
+.fb-row { margin-top: 12px; padding-top: 10px; border-top: 1px dashed var(--line); }
+.fb-chip { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.fb-chip:hover { background: var(--accent); color: #fff; }
+.fb-form { display: grid; gap: 10px; }
+.fb-form textarea { width: 100%; min-height: 140px; resize: vertical; }
+.fb-form .fb-check { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+.fb-form .fb-check input { width: auto; }
 @media print { .site-foot { display: none; } }
 .topbar .logo-mark { color: #ffffff; }
 .brand-name { font-weight: 700; font-size: 17px; }
