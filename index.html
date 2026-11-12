@@ -58,13 +58,13 @@
         </div>
         <div id="lines"></div>
 
-        <button type="button" class="con-toggle" id="con-toggle" aria-expanded="false" aria-controls="con-pick">
+        <button type="button" class="con-toggle" id="con-toggle" aria-expanded="true" aria-controls="con-pick">
           <span class="head-tip"><h3 data-t="candidates">③ 备选集装箱</h3><span id="con-info"></span></span>
           <span class="con-chosen" id="con-count"></span>
-          <span class="caret" aria-hidden="true">▾</span>
+          <span class="caret" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 9l7 7 7-7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
         </button>
         <div class="con-mode-box" id="con-mode-box"></div>
-        <div class="con-pick" id="con-pick" hidden></div>
+        <div class="con-pick" id="con-pick"></div>
 
         <button class="primary wide" type="button" id="run" data-t="calculate">计算装柜方案</button>
         <p class="status" id="run-status" role="status"></p>
@@ -205,6 +205,13 @@
     </div>
   </section>
 </main>
+
+<footer class="site-foot">
+  <span class="foot-ver" id="app-ver">v26.11.12.3</span>
+  <span data-t="footRights">© 2026 Opti-Load 版权所有。</span>
+  <span data-t="footNote">装柜方案由软件自动计算，仅供参考；实际装柜请以现场情况为准，并核对尺寸、重量和限重。因使用计算结果造成的任何损失，Opti-Load 不承担责任。</span>
+  <a href="terms.html" target="_blank" rel="noopener" data-t="footTerms">使用条款</a>
+</footer>
 
 <dialog id="dlg">
   <form method="dialog" id="dlg-form">
